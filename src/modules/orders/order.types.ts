@@ -1,4 +1,4 @@
-import { OrderServiceStatus, OrderState } from "./order.enum";
+import { OrderServiceStatus, OrderState } from './order.enum';
 
 export interface OrderServiceDTO {
   name: string;
@@ -17,4 +17,8 @@ export interface ListOrdersQuery {
   page?: number;
   limit?: number;
   state?: OrderState;
+}
+
+export interface AdvanceOrdersParams {
+  id: string;
 }

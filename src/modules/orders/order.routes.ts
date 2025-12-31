@@ -6,5 +6,6 @@ export const orderRoutes = Router();
 
 orderRoutes.use(ensureAuthenticated);
 
-orderRoutes.post('/', OrderController.create)
-orderRoutes.get('/', OrderController.list)
+orderRoutes.post('/', OrderController.create);
+orderRoutes.get('/', OrderController.list);
+orderRoutes.patch('/:id/advance', OrderController.advance);

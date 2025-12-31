@@ -1,6 +1,10 @@
 import { ErrorHandler } from '../../shared/errors/error';
 import { HttpErrorsStatusCode } from '../../shared/errors/error.types';
-import { CreateOrderDTO, ListOrdersQuery } from './order.types';
+import {
+  AdvanceOrdersParams,
+  CreateOrderDTO,
+  ListOrdersQuery,
+} from './order.types';
 import { OrderState, OrderStatus } from './order.enum';
 import { OrderModel } from './order.model';
 
@@ -50,5 +54,42 @@ export class OrderService {
       limit,
       total,
     };
+  }
+
+  static async advance(orderId: AdvanceOrdersParams) {
+    if (!orderId) {
+      throw new ErrorHandler(
+        'Provide the order id',
+        HttpErrorsStatusCode.BAD_REQUEST,
+      );
+    }
+
+    const order = await OrderModel.findById(orderId);
+
+    if (!order) {
+      throw new ErrorHandler(
+        'Order not found. Check the id or try another',
+        HttpErrorsStatusCode.NOT_FOUND,
+      );
+    }
+
+    const transitions: Record<OrderState, OrderState | null> = {
+      CREATED: OrderState.ANALYSIS,
+      ANALYSIS: OrderState.COMPLETED,
+      COMPLETED: null,
+    };
+
+    const newOrderState = transitions[order.state as OrderState];
+
+    if (!newOrderState) {
+      throw new ErrorHandler(
+        'Order is already completed and cannot advance',
+        HttpErrorsStatusCode.BAD_REQUEST,
+      );
+    }
+
+    order.state = newOrderState;
+    await order.save();
+    return order;
   }
 }
