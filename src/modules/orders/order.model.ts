@@ -1,0 +1,43 @@
+import { model, Schema } from 'mongoose';
+import { OrderServiceStatus, OrderState, OrderStatus } from './order.enum';
+
+const ServiceSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    value: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: Object.values(OrderServiceStatus),
+      default: OrderServiceStatus.PENDING,
+    },
+  },
+  { _id: false },
+);
+
+const OrderSchema = new Schema(
+  {
+    lab: { type: String, required: true },
+    patient: { type: String, required: true },
+    customer: { type: String, required: true },
+
+    state: {
+      type: String,
+      enum: Object.values(OrderState),
+      default: OrderState.CREATED,
+    },
+
+    status: {
+      type: String,
+      enum: Object.values(OrderStatus),
+      default: OrderStatus.ACTIVE,
+    },
+
+    services: {
+      type: [ServiceSchema],
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
+
+export const OrderModel = model('Order', OrderSchema);
