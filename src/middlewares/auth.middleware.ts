@@ -28,12 +28,18 @@ export async function ensureAuthenticated(
       return;
     }
 
+    const [scheme, token] = authHeader.split(' ');
+
+    if (scheme !== 'Bearer' || !token) {
+      res.status(401).json({ message: 'Invalid authorization format' });
+      return;
+    }
+
     if (!JWT_SECRET) {
       res.status(500).json({ message: 'JWT secret is not defined' });
       return;
     }
 
-    const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
     const user = await UserModel.findById(decoded.sub, '_id');
