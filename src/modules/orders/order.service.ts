@@ -1,6 +1,6 @@
 import { ErrorHandler } from '../../shared/errors/error';
 import { HttpErrorsStatusCode } from '../../shared/errors/error.types';
-import { CreateOrderDTO, ListOrdersQuery } from './order.dto';
+import { CreateOrderDTO, ListOrdersQuery } from './order.types';
 import { OrderState, OrderStatus } from './order.enum';
 import { OrderModel } from './order.model';
 
