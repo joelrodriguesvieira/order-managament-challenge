@@ -1,6 +1,6 @@
 import { ErrorHandler } from '../../shared/errors/error';
 import { HttpErrorsStatusCode } from '../../shared/errors/error.types';
-import { CreateOrderDTO } from './order.dto';
+import { CreateOrderDTO, ListOrdersQuery } from './order.dto';
 import { OrderState, OrderStatus } from './order.enum';
 import { OrderModel } from './order.model';
 
@@ -30,5 +30,25 @@ export class OrderService {
       state: OrderState.CREATED,
       status: OrderStatus.ACTIVE,
     });
+  }
+
+  static async list({
+    page = 1,
+    limit = 10,
+    state = OrderState.CREATED,
+  }: ListOrdersQuery) {
+    const orders = await OrderModel.find({ state })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await OrderModel.countDocuments({ state });
+
+    return {
+      data: orders,
+      page,
+      limit,
+      total,
+    };
   }
 }
