@@ -12,7 +12,7 @@ describe('Order service - Advance Method', () => {
     vi.clearAllMocks();
   });
 
-  it('Should advance from CREATED to ANALYSIS', async () => {
+  it(`Should advance from 'CREATED' to 'ANALYSIS'`, async () => {
     const orderMock = {
       state: OrderState.CREATED,
       save: vi.fn(),
@@ -21,13 +21,14 @@ describe('Order service - Advance Method', () => {
     vi.spyOn(OrderModel, 'findById').mockResolvedValue(orderMock);
 
     const orderId = 'order-id' as unknown as AdvanceOrdersParams;
-    const result = await OrderService.advance(orderId);
+    const newState = OrderState.ANALYSIS;
+    const result = await OrderService.advance(orderId, newState);
 
     expect(result.state).toBe(OrderState.ANALYSIS);
     expect(orderMock.save).toHaveBeenCalled();
   });
 
-  it('Should advance from ANALYSIS to COMPLETED', async () => {
+  it(`Should advance from 'ANALYSIS' to 'COMPLETED'`, async () => {
     const orderMock = {
       state: OrderState.ANALYSIS,
       save: vi.fn(),
@@ -36,41 +37,63 @@ describe('Order service - Advance Method', () => {
     vi.spyOn(OrderModel, 'findById').mockResolvedValue(orderMock);
 
     const orderId = 'order-id' as unknown as AdvanceOrdersParams;
-    const result = await OrderService.advance(orderId);
+    const newState = OrderState.COMPLETED;
+    const result = await OrderService.advance(orderId, newState);
 
     expect(result.state).toBe(OrderState.COMPLETED);
     expect(orderMock.save).toHaveBeenCalled();
   });
 
-  it('Should throw BAD_REQUEST if order is COMPLETED', async () => {
+  it(`Should throw 'BAD REQUEST' when trying to skip state`, async () => {
     const orderMock = {
-      state: OrderState.COMPLETED,
+      state: OrderState.CREATED,
       save: vi.fn(),
     };
 
     vi.spyOn(OrderModel, 'findById').mockResolvedValue(orderMock);
 
-    const orderId = 'order-id' as unknown as AdvanceOrdersParams;
-
-    await expect(OrderService.advance(orderId)).rejects.toMatchObject({
-      message: 'Order is already completed and cannot advance',
+    await expect(
+      OrderService.advance('order-id' as any, OrderState.COMPLETED),
+    ).rejects.toMatchObject({
+      message: 'Invalid state transition from CREATED to COMPLETED',
       statusCode: HttpErrorsStatusCode.BAD_REQUEST,
     });
   });
 
-  it('Should throw NOT_FOUND if order is not found', async () => {
+  it(`Should throw 'BAD REQUEST' when trying to retreat state`, async () => {
+    const orderMock = {
+      state: OrderState.ANALYSIS,
+      save: vi.fn(),
+    };
+
+    vi.spyOn(OrderModel, 'findById').mockResolvedValue(orderMock);
+
+    await expect(
+      OrderService.advance('order-id' as any, OrderState.CREATED),
+    ).rejects.toMatchObject({
+      message: 'Invalid state transition from ANALYSIS to CREATED',
+      statusCode: HttpErrorsStatusCode.BAD_REQUEST,
+    });
+  });
+
+  it(`Should throw 'NOT FOUND' if order is not found`, async () => {
     vi.spyOn(OrderModel, 'findById').mockResolvedValue(null);
 
     const invalidOrderId = 'order-id' as unknown as AdvanceOrdersParams;
+    const newState = OrderState.ANALYSIS;
 
-    await expect(OrderService.advance(invalidOrderId)).rejects.toMatchObject({
+    await expect(
+      OrderService.advance(invalidOrderId, newState),
+    ).rejects.toMatchObject({
       message: 'Order not found. Check the id or try another',
       statusCode: HttpErrorsStatusCode.NOT_FOUND,
     });
   });
 
-  it('should throw BAD_REQUEST if orderId is missing', async () => {
-    await expect(OrderService.advance(undefined as any)).rejects.toMatchObject({
+  it(`Should throw 'BAD REQUEST' if id is missing`, async () => {
+    await expect(
+      OrderService.advance(undefined as any, OrderState.ANALYSIS),
+    ).rejects.toMatchObject({
       message: 'Provide the order id',
       statusCode: HttpErrorsStatusCode.BAD_REQUEST,
     });
