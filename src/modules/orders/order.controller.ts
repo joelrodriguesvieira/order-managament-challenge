@@ -2,7 +2,12 @@ import { Request, Response } from 'express';
 import { ErrorHandler } from '../../shared/errors/error';
 import { OrderService } from './order.service';
 import { HttpErrorsStatusCode } from '../../shared/errors/error.types';
-import { AdvanceOrdersParams, CreateOrderDTO, ListOrdersQuery } from './order.types';
+import {
+  AdvanceOrdersBodyDTO,
+  AdvanceOrdersParams,
+  CreateOrderDTO,
+  ListOrdersQuery,
+} from './order.types';
 
 export class OrderController {
   static async create(req: Request, res: Response) {
@@ -37,9 +42,11 @@ export class OrderController {
 
   static async advance(req: Request, res: Response) {
     try {
-      const orderId = req.params.id as unknown as AdvanceOrdersParams
-      const result = await OrderService.advance(orderId)
-      return res.status(200).json(result)
+      const orderId = req.params.id as unknown as AdvanceOrdersParams;
+      const { newState } = req.body as AdvanceOrdersBodyDTO;
+
+      const result = await OrderService.advance(orderId, newState);
+      return res.status(200).json(result);
     } catch (error) {
       if (error instanceof ErrorHandler) {
         return res.status(error.statusCode).json({ message: error.message });

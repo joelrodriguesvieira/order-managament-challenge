@@ -56,10 +56,17 @@ export class OrderService {
     };
   }
 
-  static async advance(orderId: AdvanceOrdersParams) {
+  static async advance(orderId: AdvanceOrdersParams, newState: OrderState) {
     if (!orderId) {
       throw new ErrorHandler(
         'Provide the order id',
+        HttpErrorsStatusCode.BAD_REQUEST,
+      );
+    }
+
+    if (!newState) {
+      throw new ErrorHandler(
+        'A newState is required',
         HttpErrorsStatusCode.BAD_REQUEST,
       );
     }
@@ -79,16 +86,24 @@ export class OrderService {
       COMPLETED: null,
     };
 
-    const newOrderState = transitions[order.state as OrderState];
+    const currentOrderState = order.state;
+    const expectedOrderState = transitions[currentOrderState as OrderState];
 
-    if (!newOrderState) {
+    if (!expectedOrderState) {
       throw new ErrorHandler(
-        'Order is already completed and cannot advance',
+        'Order is already completed',
         HttpErrorsStatusCode.BAD_REQUEST,
       );
     }
 
-    order.state = newOrderState;
+    if (newState !== expectedOrderState) {
+      throw new ErrorHandler(
+        `Invalid state transition from ${currentOrderState} to ${newState}`,
+        HttpErrorsStatusCode.BAD_REQUEST,
+      );
+    }
+
+    order.state = expectedOrderState;
     await order.save();
     return order;
   }

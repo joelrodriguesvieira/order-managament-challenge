@@ -22,3 +22,7 @@ export interface ListOrdersQuery {
 export interface AdvanceOrdersParams {
   id: string;
 }
+
+export interface AdvanceOrdersBodyDTO {
+  newState: OrderState;
+}
