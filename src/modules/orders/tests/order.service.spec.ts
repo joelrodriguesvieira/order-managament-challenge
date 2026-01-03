@@ -44,7 +44,7 @@ describe('Order service - Advance Method', () => {
     expect(orderMock.save).toHaveBeenCalled();
   });
 
-  it(`Should throw 'BAD REQUEST' when trying to skip state`, async () => {
+  it(`Should throw 'BAD REQUEST' when trying to advance from 'CREATED' to 'COMPLETED' state`, async () => {
     const orderMock = {
       state: OrderState.CREATED,
       save: vi.fn(),
@@ -52,24 +52,27 @@ describe('Order service - Advance Method', () => {
 
     vi.spyOn(OrderModel, 'findById').mockResolvedValue(orderMock);
 
+    const newState = OrderState.COMPLETED;
+
     await expect(
-      OrderService.advance('order-id' as any, OrderState.COMPLETED),
+      OrderService.advance('order-id' as unknown as AdvanceOrdersParams, newState),
     ).rejects.toMatchObject({
       message: 'Invalid state transition from CREATED to COMPLETED',
       statusCode: HttpErrorsStatusCode.BAD_REQUEST,
     });
   });
 
-  it(`Should throw 'BAD REQUEST' when trying to retreat state`, async () => {
+  it(`Should throw 'BAD REQUEST' when trying to retreat from 'ANALYSIS' to 'CREATED' state`, async () => {
     const orderMock = {
       state: OrderState.ANALYSIS,
       save: vi.fn(),
     };
 
     vi.spyOn(OrderModel, 'findById').mockResolvedValue(orderMock);
+    const newState = OrderState.CREATED;
 
     await expect(
-      OrderService.advance('order-id' as any, OrderState.CREATED),
+      OrderService.advance('order-id' as unknown as AdvanceOrdersParams, newState),
     ).rejects.toMatchObject({
       message: 'Invalid state transition from ANALYSIS to CREATED',
       statusCode: HttpErrorsStatusCode.BAD_REQUEST,
