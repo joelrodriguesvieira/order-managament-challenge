@@ -8,14 +8,26 @@ import {
   CreateOrderDTO,
   ListOrdersQuery,
 } from './order.types';
+import { ZodError } from 'zod';
+import {
+  advanceOrderParamsSchema,
+  createOrderSchema,
+  listOrdersQuerySchema,
+} from './order.schema';
+import { formatZodError } from '../../shared/errors/zodErrorFormatter';
 
 export class OrderController {
   static async create(req: Request, res: Response) {
     try {
-      const data: CreateOrderDTO = req.body;
+      const data: CreateOrderDTO = createOrderSchema.parse(req.body);
       const order = await OrderService.create(data);
       return res.status(201).json(order);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(HttpErrorsStatusCode.BAD_REQUEST).json({
+          errors: formatZodError(error),
+        });
+      }
       if (error instanceof ErrorHandler) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -27,10 +39,15 @@ export class OrderController {
 
   static async list(req: Request, res: Response) {
     try {
-      const query = req.query as ListOrdersQuery;
+      const query = listOrdersQuerySchema.parse(req.query) as ListOrdersQuery;
       const result = await OrderService.list(query);
       return res.status(200).json(result);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(HttpErrorsStatusCode.BAD_REQUEST).json({
+          errors: formatZodError(error),
+        });
+      }
       if (error instanceof ErrorHandler) {
         return res.status(error.statusCode).json({ message: error.message });
       }
@@ -43,11 +60,17 @@ export class OrderController {
   static async advance(req: Request, res: Response) {
     try {
       const orderId = req.params.id as unknown as AdvanceOrdersParams;
-      const { newState } = req.body as AdvanceOrdersBodyDTO;
-
+      const { newState } = advanceOrderParamsSchema.parse(
+        req.body,
+      ) as AdvanceOrdersBodyDTO;
       const result = await OrderService.advance(orderId, newState);
       return res.status(200).json(result);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(HttpErrorsStatusCode.BAD_REQUEST).json({
+          errors: formatZodError(error),
+        });
+      }
       if (error instanceof ErrorHandler) {
         return res.status(error.statusCode).json({ message: error.message });
       }
