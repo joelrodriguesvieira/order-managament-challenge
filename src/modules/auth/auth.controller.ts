@@ -4,8 +4,9 @@ import { LoginDTO, RegisterDTO } from './auth.types';
 import { ErrorHandler } from '../../shared/errors/error';
 import { HttpErrorsStatusCode } from '../../shared/errors/error.types';
 import { loginSchema, registerSchema } from './auth.schema';
-import z, { ZodError } from 'zod';
+import { ZodError } from 'zod';
 import { formatZodError } from '../../shared/errors/zodErrorFormatter';
+
 export class AuthController {
   static async register(req: Request, res: Response) {
     try {
