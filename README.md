@@ -9,11 +9,12 @@ API backend desenvolvida em **Node.js + TypeScript** para gerenciamento de pedid
 - Node.js
 - Express
 - TypeScript
+- Zod
 - MongoDB
 - Mongoose
-- JWT (jsonwebtoken)
+- JWT
 - Docker & Docker Compose
-- Vitest (testes unitários)
+- Vitest
 
 ---
 
