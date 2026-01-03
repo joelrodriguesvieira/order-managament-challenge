@@ -5,12 +5,7 @@ import { ErrorHandler } from '../../shared/errors/error';
 import { HttpErrorsStatusCode } from '../../shared/errors/error.types';
 import { loginSchema, registerSchema } from './auth.schema';
 import z, { ZodError } from 'zod';
-import { createErrorMap, fromError } from 'zod-validation-error';
-
-z.config({
-  customError: createErrorMap(),
-});
-
+import { formatZodError } from '../../shared/errors/zodErrorFormatter';
 export class AuthController {
   static async register(req: Request, res: Response) {
     try {
@@ -20,9 +15,8 @@ export class AuthController {
       return res.status(201).json(result);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationError = fromError(error);
         return res.status(HttpErrorsStatusCode.BAD_REQUEST).json({
-          message: validationError.toString(),
+          errors: formatZodError(error),
         });
       }
       if (error instanceof ErrorHandler) {
@@ -42,9 +36,8 @@ export class AuthController {
       return res.json(result);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationError = fromError(error);
         return res.status(HttpErrorsStatusCode.BAD_REQUEST).json({
-          message: validationError.toString(),
+          errors: formatZodError(error),
         });
       }
       if (error instanceof ErrorHandler) {
